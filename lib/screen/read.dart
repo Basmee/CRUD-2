@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_19/screen/create.dart';
-import 'package:flutter_application_19/screen/update.dart';
-import 'package:flutter_application_19/screen/patient.dart';
-import 'package:flutter_application_19/screen/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_application_19/screen/history.dart';
+import 'package:flutter_application_19/screen/update.dart';
+import 'package:flutter_application_19/screen/create.dart';
+import 'package:flutter_application_19/screen/config.dart';
+import 'package:flutter_application_19/screen/patient.dart';
+
+import 'package:flutter_application_19/main.dart';
 
 class ReadPatientPage extends StatefulWidget {
   static const routeName = "/";
+
   const ReadPatientPage({Key? key}) : super(key: key);
 
   @override
@@ -16,11 +19,7 @@ class ReadPatientPage extends StatefulWidget {
 
 class _ReadPatientPageState extends State<ReadPatientPage> {
   List<Patients> _patientList = [];
-
-  // Define a function to refresh the patient list
-  Future<void> refreshPatients() async {
-    await getPatients();
-  }
+  bool _isLoading = true;
 
   Future<void> getPatients() async {
     try {
@@ -29,6 +28,7 @@ class _ReadPatientPageState extends State<ReadPatientPage> {
       if (resp.statusCode == 200) {
         setState(() {
           _patientList = patientsFromJson(resp.body);
+          _isLoading = false;
         });
       } else {
         print("Failed to fetch patients: ${resp.statusCode}");
@@ -56,92 +56,118 @@ class _ReadPatientPageState extends State<ReadPatientPage> {
       appBar: AppBar(
         title: Text('Read Patients'),
         centerTitle: true,
-      ),
-      body: RefreshIndicator(
-        onRefresh: refreshPatients,
-        child: ListView.builder(
-          itemCount: _patientList.length,
-          itemBuilder: (context, index) {
-            Patients patient = _patientList[index];
-            return ListTile(
-              title: Row(
-                children: [
-                  Text(
-                    "${patient.id}",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    "${patient.name}",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => History(),
-                    settings: RouteSettings(arguments: patient),
-                  ),
-                );
-              },
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              UpdatePatientPage(patient: patient),
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () async {
-                      bool confirmDelete = await showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Delete Patient'),
-                          content: Text(
-                              'Are you sure you want to delete this patient?'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(false);
-                              },
-                              child: Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                await removePatients(patient);
-                                Navigator.of(context).pop(true);
-                              },
-                              child: Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (confirmDelete == true) {
-                        refreshPatients();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
+        leading: Image.network(
+          'https://cdn-icons-png.flaticon.com/256/9821/9821795.png',
+          width: 50,
         ),
+        //elevation: 5,
+        actions: <Widget>[
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, HomePage.routeName);
+            },
+            child: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(
+                    'https://cdn-icons-png.flaticon.com/128/64/64572.png'),
+              ),
+            ),
+          ),
+        ],
       ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+              child: ListView.builder(
+                itemCount: _patientList.length,
+                itemBuilder: (context, index) {
+                  Patients patient = _patientList[index];
+                  return Card(
+                    //elevation: 5, // เพิ่มเงาให้กับ Card
+                    margin: EdgeInsets.all(8), // กำหนดระยะห่างขอบของ Card
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Text(
+                            "${patient.id}",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            "${patient.name}",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => History(),
+                            settings: RouteSettings(arguments: patient),
+                          ),
+                        );
+                      },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => UpdatePatientPage(),
+                                      settings:
+                                          RouteSettings(arguments: patient)));
+                              if (result == "refresh") {
+                                getPatients();
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () async {
+                              bool confirmDelete = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Delete Patient'),
+                                  content: Text(
+                                      'Are you sure you want to delete this patient?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(false);
+                                      },
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        await removePatients(patient);
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmDelete == true) {
+                                getPatients();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           String result = await Navigator.push(
@@ -151,7 +177,7 @@ class _ReadPatientPageState extends State<ReadPatientPage> {
             ),
           );
           if (result == "refresh") {
-            refreshPatients();
+            getPatients();
           }
         },
         child: Icon(Icons.add),

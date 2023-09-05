@@ -12,7 +12,27 @@ class History extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Patient Details"), // Updated app bar title
+        title: Text('Patient Details'),
+        centerTitle: true,
+        leading: Image.network(
+          'https://cdn-icons-png.flaticon.com/256/9821/9821795.png',
+          width: 50,
+        ),
+        elevation: 5,
+        actions: <Widget>[
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context, "refresh");
+            },
+            child: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(
+                    'https://cdn-icons-png.flaticon.com/128/463/463612.png'),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10),
@@ -69,13 +89,6 @@ class History extends StatelessWidget {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate back to the previous screen
-          Navigator.pop(context);
-        },
-        child: Icon(Icons.arrow_back),
       ),
     );
   }

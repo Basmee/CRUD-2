@@ -3,147 +3,83 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_19/screen/config.dart';
 import 'package:flutter_application_19/screen/patient.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_application_19/screen/read.dart';
 
-class CreatePatientPage extends StatefulWidget {
-  const CreatePatientPage({super.key});
+class CreatePatient extends StatefulWidget {
+  const CreatePatient({Key? key});
 
   @override
-  State<CreatePatientPage> createState() => _CreatePatientPageState();
+  _CreatePatientState createState() => _CreatePatientState();
 }
 
-class _CreatePatientPageState extends State<CreatePatientPage> {
-  final _formKey = GlobalKey<FormState>();
-  //Patients patient = Patients();
+class _CreatePatientState extends State<CreatePatient> {
+  final _formkey = GlobalKey<FormState>();
   late Patients patient;
 
-  Future<void> addOrUpdatePatient() async {
-    final url = Uri.http(Configure.server, "patients");
-    final resp = patient.id != null
-        ? await http.put(
-            url,
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: jsonEncode(patient.toJson()),
-          )
-        : await http.post(
-            url,
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: jsonEncode(patient.toJson()),
-          );
+  Future<void> addNewpatient(patient) async {
+    var url = Uri.http(Configure.server, "Patients");
+    var resp = await http.post(url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(patient.toJson()));
+    var rs = patientsFromJson("[${resp.body}]");
 
-    if (resp.statusCode == 200) {
+    if (rs.length == 1) {
       Navigator.pop(context, "refresh");
-    } else {
-      print("Error: ${resp.statusCode}");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    try {
+      patient = ModalRoute.of(context)!.settings.arguments as Patients;
+      print(patient.name);
+    } catch (e) {
+      patient = Patients();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Patient Form"),
+        centerTitle: true,
+        leading: Image.network(
+          'https://cdn-icons-png.flaticon.com/256/9821/9821795.png',
+          width: 50,
+        ),
         elevation: 5,
+        actions: <Widget>[
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context, "refresh");
+            },
+            child: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(
+                    'https://cdn-icons-png.flaticon.com/128/463/463612.png'),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Container(
-        margin: const EdgeInsets.all(10),
+        margin: EdgeInsets.all(10),
         child: Form(
-          key: _formKey,
+          key: _formkey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                initialValue: patient.name,
-                decoration: const InputDecoration(
-                  labelText: "Fullname",
-                  icon: Icon(Icons.person),
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "This field is required";
-                  }
-                  return null;
-                },
-                onSaved: (newValue) => patient.name = newValue!,
-              ),
+              fnameInputField(),
+              ageFormInput(),
               genderFormInput(),
-              TextFormField(
-                initialValue: patient.age != null ? patient.age.toString() : "",
-                decoration: const InputDecoration(
-                  labelText: "Age:",
-                  icon: Icon(Icons.person),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "This field is required";
-                  }
-                  final age = int.tryParse(value);
-                  if (age == null || age < 0) {
-                    return "Invalid age";
-                  }
-                  return null;
-                },
-                onSaved: (newValue) {
-                  final age = int.tryParse(newValue!);
-                  patient.age = age;
-                },
+              SizedBox(
+                height: 10,
               ),
-              TextFormField(
-                initialValue: patient.symptoms,
-                decoration: const InputDecoration(
-                  labelText: "Symptoms:",
-                  icon: Icon(Icons.healing),
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "This field is required";
-                  }
-                  return null;
-                },
-                onSaved: (newValue) => patient.symptoms = newValue!,
-              ),
-              TextFormField(
-                initialValue: patient.disease,
-                decoration: const InputDecoration(
-                  labelText: "Disease:",
-                  icon: Icon(Icons.local_hospital),
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "This field is required";
-                  }
-                  return null;
-                },
-                onSaved: (newValue) => patient.disease = newValue!,
-              ),
-              TextFormField(
-                initialValue: patient.treatment,
-                decoration: const InputDecoration(
-                  labelText: "Treatment:",
-                  icon: Icon(Icons.medical_services),
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "This field is required";
-                  }
-                  return null;
-                },
-                onSaved: (newValue) => patient.treatment = newValue!,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    await addOrUpdatePatient();
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: const Text("Save"),
-              ),
+              symptomsFormInput(),
+              diseaseFormInput(),
+              treatmentFormInput(),
+              submitButton(),
             ],
           ),
         ),
@@ -151,12 +87,34 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
     );
   }
 
+  Widget fnameInputField() {
+    return TextFormField(
+      initialValue: patient.name,
+      decoration:
+          InputDecoration(labelText: "Fullname", icon: Icon(Icons.person)),
+      validator: (value) {
+        if (value!.isEmpty) {
+          return "This field is required";
+        }
+        return null;
+      },
+      onSaved: (newValue) => patient.name = newValue,
+    );
+  }
+
   Widget genderFormInput() {
-    final initGen = patient.gender != null ? patient.gender! : "None";
+    var initGen = "None";
+    try {
+      if (!patient.gender!.isEmpty) {
+        initGen = patient.gender!;
+      }
+    } catch (e) {
+      initGen = "None";
+    }
     return DropdownButtonFormField(
       value: initGen,
       decoration:
-          const InputDecoration(labelText: "Gender:", icon: Icon(Icons.man)),
+          InputDecoration(labelText: "Gender:", icon: Icon(Icons.person)),
       items: Configure.gender.map((String val) {
         return DropdownMenuItem(
           value: val,
@@ -164,9 +122,105 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
         );
       }).toList(),
       onChanged: (value) {
-        patient.gender = value;
+        setState(() {
+          patient.gender = value.toString();
+        });
       },
-      onSaved: (newValue) => patient.gender = newValue!,
+      onSaved: (newValue) => patient.gender = newValue,
+    );
+  }
+
+  Widget ageFormInput() {
+    return TextFormField(
+      initialValue: patient.age != null ? patient.age.toString() : "",
+      decoration: const InputDecoration(
+        labelText: "Age:",
+        icon: Icon(Icons.person),
+      ),
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        if (value!.isEmpty) {
+          return "This field is required";
+        }
+        final age = int.tryParse(value);
+        if (age == null || age < 0) {
+          return "Invalid age";
+        }
+        return null;
+      },
+      onSaved: (newValue) {
+        final age = int.tryParse(newValue!);
+        patient.age = age;
+      },
+    );
+  }
+
+  Widget symptomsFormInput() {
+    return TextFormField(
+      initialValue: patient.symptoms,
+      decoration: const InputDecoration(
+        labelText: "Symptoms:",
+        icon: Icon(Icons.healing),
+      ),
+      validator: (value) {
+        if (value!.isEmpty) {
+          return "This field is required";
+        }
+        return null;
+      },
+      onSaved: (newValue) => patient.symptoms = newValue!,
+    );
+  }
+
+  Widget diseaseFormInput() {
+    return TextFormField(
+      initialValue: patient.disease,
+      decoration: const InputDecoration(
+        labelText: "Disease:",
+        icon: Icon(Icons.healing),
+      ),
+      validator: (value) {
+        if (value!.isEmpty) {
+          return "This field is required";
+        }
+        return null;
+      },
+      onSaved: (newValue) => patient.disease = newValue!,
+    );
+  }
+
+  Widget treatmentFormInput() {
+    return TextFormField(
+      initialValue: patient.treatment,
+      decoration: const InputDecoration(
+        labelText: "Treatment:",
+        icon: Icon(Icons.healing),
+      ),
+      validator: (value) {
+        if (value!.isEmpty) {
+          return "This field is required";
+        }
+        return null;
+      },
+      onSaved: (newValue) => patient.treatment = newValue!,
+    );
+  }
+
+  Widget submitButton() {
+    return ElevatedButton(
+      onPressed: () async {
+        if (_formkey.currentState!.validate()) {
+          _formkey.currentState!.save();
+          print(patient.toJson().toString());
+          if (patient.id == null) {
+            await addNewpatient(patient);
+          }
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => ReadPatientPage()),
+          );
+        }
+      },
+      child: Text("Save"),
     );
   }
 }

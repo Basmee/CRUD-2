@@ -17,14 +17,19 @@ class MyApp extends StatelessWidget {
       title: 'Patient Records App',
       theme: ThemeData(
           colorScheme:
-              ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 6, 62, 108)),
+              ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 3, 116, 157)),
           useMaterial3: true),
+      initialRoute: '/',
+      routes: {
+        '/login': (context) => const HomePage(),
+      },
       home: HomePage(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
+  static const routeName = "/login";
   const HomePage({super.key});
 
   @override
@@ -72,11 +77,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 26, 122, 201),
+      backgroundColor: Color.fromARGB(255, 2, 164, 189),
       body: Column(
         children: [
+          SizedBox(
+            height: 50,
+          ),
           Container(
-            height: 150, // ความสูงของส่วนของ AppBar
             child: Center(
               child: Text(
                 'RespiCare',
@@ -96,12 +103,15 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Image.network(
                     'https://cdn-icons-png.flaticon.com/256/9821/9821795.png',
-                    width: 250.0,
+                    width: 200.0,
                   ),
                   SizedBox(height: 20.0),
                   Text(
                     "Welcome",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 35,
+                        fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 20.0),
                   emailInputField(),
