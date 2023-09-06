@@ -44,7 +44,7 @@ class _CreatePatientState extends State<CreatePatient> {
         title: const Text("Patient Form"),
         centerTitle: true,
         leading: Image.network(
-          'https://cdn-icons-png.flaticon.com/256/9821/9821795.png',
+          'https://cdn-icons-png.flaticon.com/128/2841/2841431.png',
           width: 50,
         ),
         elevation: 5,
@@ -55,9 +55,9 @@ class _CreatePatientState extends State<CreatePatient> {
             },
             child: Padding(
               padding: EdgeInsets.all(10.0),
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(
-                    'https://cdn-icons-png.flaticon.com/128/463/463612.png'),
+              child: Icon(
+                Icons.home,
+                color: Color.fromARGB(255, 0, 53, 96),
               ),
             ),
           ),

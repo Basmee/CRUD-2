@@ -16,8 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Patient Records App',
       theme: ThemeData(
-          colorScheme:
-              ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 3, 116, 157)),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyan),
           useMaterial3: true),
       initialRoute: '/',
       routes: {
@@ -77,7 +76,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 2, 164, 189),
+      backgroundColor: Color.fromARGB(255, 2, 59, 110),
       body: Column(
         children: [
           SizedBox(
@@ -102,8 +101,8 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.network(
-                    'https://cdn-icons-png.flaticon.com/256/9821/9821795.png',
-                    width: 200.0,
+                    'https://cdn-icons-png.flaticon.com/128/2841/2841431.png',
+                    width: 150.0,
                   ),
                   SizedBox(height: 20.0),
                   Text(
